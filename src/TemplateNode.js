@@ -2,11 +2,11 @@ import { attrMarker, marker } from './TemplateTag';
 import { remove, toArray, createEmptyTextNode } from './utils';
 
 export default class TemplateNode {
-  constructor (templateResult) {
+  constructor (templateResult, isSvg) {
     this.templateResult = templateResult;
 
     // create the template first time the element is used
-    templateResult.create();
+    templateResult.create(isSvg);
 
     // create dom fragment out of template
     this.fragment = this.createNode();

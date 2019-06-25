@@ -31,8 +31,10 @@ export default class TemplateTag {
   constructor (strings) {
     this.strings = strings;
   }
-  create () {
+  create (isSvg) {
     if (this.template) return;
+
+    this.isSvg = isSvg;
 
     this.partsMeta = this.getPartsMeta();
 
