@@ -88,7 +88,7 @@ function spliceUnusedNodes (index, oldNodes, parentNode, previousSibling) {
 /**
    * Updater to handle array of nodes
    */
-function updateArrayNodes (part, nodes, oldNodes = [], context) {
+function updateArrayNodes (part, nodes, oldNodes = [], context, isSvgPart) {
   const { parentNode, previousSibling, nextSibling } = part;
 
   const nodesLength = nodes.length;
@@ -115,7 +115,7 @@ function updateArrayNodes (part, nodes, oldNodes = [], context) {
       previousSibling: lastChild,
       nextSibling: _nextSibling,
       isNode: true,
-    }, node, oldNode, context, forceUpdate);
+    }, node, oldNode, context, isSvgPart, forceUpdate);
   }
 
   // teardown all extra pending old nodes
@@ -132,11 +132,14 @@ function updateArrayNodes (part, nodes, oldNodes = [], context) {
 /**
  * Update tagged template node
  */
-function updateTagNode (part, node, oldNode, context, forceRender) {
+function updateTagNode (part, node, oldNode, context, isSvgPart, forceRender) {
   const { parentNode, previousSibling, nextSibling } = part;
 
-  let { templateNode, values, oldValues, __$isBrahmosTagElement$__: isTagElement } = node;
+  let { templateNode, values, oldValues, __$isBrahmosTagElement$__: isTagElement, element } = node;
   let freshRender;
+
+  // if the node is an svg element set the isSvgPart true
+  isSvgPart = isSvgPart || element === 'svg';
 
   /**
      * if you don't get the old template node it means you have to render the node first time
@@ -145,11 +148,11 @@ function updateTagNode (part, node, oldNode, context, forceRender) {
   if (!templateNode) {
     freshRender = true;
 
-    templateNode = isTagElement ? getTagNode(node) : new TemplateNode(node.template);
+    templateNode = isTagElement ? getTagNode(node, isSvgPart) : new TemplateNode(node.template, isSvgPart);
 
     // add templateNode to node so we can access it on next updates
     node.templateNode = templateNode;
-  } else {
+  } else if (!isTagElement) {
   /**
    * if any of templateNode part does not have proper parent node and its not first render
    * patch the part information using the current node's part
@@ -161,7 +164,7 @@ function updateTagNode (part, node, oldNode, context, forceRender) {
    * update parts before attaching elements to dom,
    * so most of the work happens on fragment
    */
-  updater(templateNode.parts, values, oldValues, context);
+  updater(templateNode.parts, values, oldValues, context, isSvgPart);
 
   if (freshRender) {
     // delete the existing elements
@@ -194,7 +197,7 @@ function updateTagNode (part, node, oldNode, context, forceRender) {
 /**
    * Updater to handle any type of node
    */
-export default function updateNode (part, node, oldNode, context, forceRender) {
+export default function updateNode (part, node, oldNode, context, isSvgPart, forceRender) {
   if (!isRenderableNode(node)) {
     /**
        * If the new node is falsy value and
@@ -205,11 +208,11 @@ export default function updateNode (part, node, oldNode, context, forceRender) {
       tearDown(oldNode, part);
     }
   } else if (Array.isArray(node)) {
-    return updateArrayNodes(part, node, oldNode, context);
+    return updateArrayNodes(part, node, oldNode, context, isSvgPart);
   } else if (node.__$isBrahmosComponent$__) {
-    return updateComponentNode(part, node, oldNode, context, forceRender);
+    return updateComponentNode(part, node, oldNode, context, isSvgPart, forceRender);
   } else if (node.__$isBrahmosTag$__) {
-    return updateTagNode(part, node, oldNode, context, forceRender);
+    return updateTagNode(part, node, oldNode, context, isSvgPart, forceRender);
   } else if (isPrimitiveNode(node) && node !== oldNode) {
     return updateTextNode(part, node, oldNode);
   }

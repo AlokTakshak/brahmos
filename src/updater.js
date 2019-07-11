@@ -3,7 +3,7 @@ import updateNode from './updateNode';
 
 import { applyHandlers } from './mountHandlerQueue';
 
-export default function updater (parts, values, oldValues = [], context, root) {
+export default function updater (parts, values, oldValues = [], context, isSvgPart, root) {
   for (let i = 0, ln = parts.length; i < ln; i++) {
     const part = parts[i];
     const value = values[i];
@@ -13,10 +13,10 @@ export default function updater (parts, values, oldValues = [], context, root) {
     if (isAttribute) {
       Object.entries(value).forEach(([attrName, attrValue]) => {
         const oldAttrValue = oldValue && oldValue[attrName];
-        updateAttribute(part, attrName, attrValue, oldAttrValue);
+        updateAttribute(part, attrName, attrValue, oldAttrValue, isSvgPart);
       });
     } else if (isNode) {
-      updateNode(part, value, oldValue, context);
+      updateNode(part, value, oldValue, context, isSvgPart);
     }
   }
 

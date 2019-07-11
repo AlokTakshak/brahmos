@@ -1,15 +1,20 @@
 import { attrMarker, marker } from './TemplateTag';
-import { remove, toArray, createEmptyTextNode } from './utils';
+import {
+  remove,
+  toArray,
+  createEmptyTextNode,
+  changeToNode,
+} from './utils';
 
 export default class TemplateNode {
-  constructor (templateResult, isSvg) {
+  constructor (templateResult, isSvgPart) {
     this.templateResult = templateResult;
 
     // create the template first time the element is used
-    templateResult.create(isSvg);
+    templateResult.create(isSvgPart);
 
     // create dom fragment out of template
-    this.fragment = this.createNode();
+    this.fragment = this.createNode(isSvgPart);
 
     this.parts = this.getParts();
 
@@ -17,9 +22,17 @@ export default class TemplateNode {
     // TODO: Check if you want to use Array.from instead
     this.nodes = toArray(this.fragment.childNodes);
   }
-  createNode () {
-    const { template } = this.templateResult;
-    return document.importNode(template.content, true);
+  createNode (isSvgPart) {
+    const { template, svgTemplate } = this.templateResult;
+    const templateElement = isSvgPart ? svgTemplate : template;
+    const clone =  document.importNode(templateElement.content, true);
+
+    /**
+     * if it the clone element is an svg that will mean that its a part of
+     * some parent svg, which is being added using TagNode.
+     * In such cases create a document fragment from the children of svg.
+     */
+    return isSvgPart ? changeToNode(clone.childNodes[0].childNodes) : clone;
   }
   createWalker (node) {
     /**

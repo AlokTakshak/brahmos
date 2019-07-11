@@ -15,7 +15,7 @@ export default function render (node, target) {
   associateInstance(node, target.__brahmosNode);
 
   // pass the context as empty object
-  updater([part], [node], [], {}, true);
+  updater([part], [node], [], {}, false, true);
 
   // store the node reference on target
   target.__brahmosNode = node;
@@ -28,5 +28,5 @@ export default function render (node, target) {
  */
 export function reRender (component) {
   const { __part: part, __componentNode: node, __context: context } = component;
-  updater([part], [node], [], context, true);
+  updater([part], [node], [], context, false, true);
 }
